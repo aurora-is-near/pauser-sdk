@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "lint": "eslint src/** --ext .ts",
+    "lint": "eslint src/** test/** --ext .ts",
     "build": "tsc",
     "test": "jest"
   },
