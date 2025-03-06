@@ -36,7 +36,7 @@ Ensure that these variables are set in your environment or configuration file so
 import { pause, PauseSdkError, PauseOpts } from "@aurora-is-near/pause-sdk";
 
 const pauseOpts: PauseOpts = {
-  networkId: "NEAR", // or the corresponding SupportedChainId value
+  networkId: "near", // or the corresponding SupportedChainId value
   chainId: "testnet", // or the appropriate chain id (number or string)
   accountId: "example-contract.testnet",
   methodName: "customPauseMethod", // (optional, NEAR only)
