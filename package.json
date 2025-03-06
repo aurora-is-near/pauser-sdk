@@ -6,8 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
-    "pretest": "pnpm run build"
+    "test": "jest"
+  },
+  "engines": {
+    "node": ">=20.18.1"
   },
   "keywords": [
     "pause",

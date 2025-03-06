@@ -18,7 +18,6 @@ import {
   NEAR_MNEMONIC,
   NEAR_TESTNET_CONFIG,
   RPC_URL_BY_CHAIN_ID,
-  SupportedChainId,
 } from "./config";
 import pausableAbi from "./Pausable.abi";
 
@@ -64,7 +63,7 @@ export interface PauseOpts {
   /**
    * Network ID which identifies the blockchain network (e.g. NEAR or Ethereum).
    */
-  networkId: SupportedChainId;
+  networkId: string;
   /**
    * The chain ID. For Ethereum it should be a number; for NEAR a string is acceptable.
    */
@@ -185,7 +184,7 @@ export interface UnpauseOpts {
   /**
    * Network ID which identifies the blockchain network.
    */
-  networkId: SupportedChainId;
+  networkId: string;
   /**
    * The chain ID (Ethereum chains only).
    */
