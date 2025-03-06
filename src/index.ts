@@ -1,7 +1,7 @@
-import base58 from "bs58";
-import { ethers } from "ethers";
-import nearAPI, { Contract, KeyPair } from "near-api-js";
-import { parseSeedPhrase } from "near-seed-phrase";
+import base58 from 'bs58';
+import { ethers } from 'ethers';
+import nearAPI, { Contract, KeyPair } from 'near-api-js';
+import { parseSeedPhrase } from 'near-seed-phrase';
 import {
   ETH_INDEX_BY_CHAIN_ID,
   ETHEREUM_DERIVATION_PATH,
@@ -18,8 +18,8 @@ import {
   NEAR_MNEMONIC,
   NEAR_TESTNET_CONFIG,
   RPC_URL_BY_CHAIN_ID,
-} from "./config";
-import pausableAbi from "./Pausable.abi";
+} from './config';
+import pausableAbi from './Pausable.abi';
 
 /**
  * Custom error type for structured error handling in the Pause SDK.
@@ -29,10 +29,11 @@ export class PauseSdkError extends Error {
    * Error code representing the type of error.
    */
   public code: string;
+
   /**
    * The underlying error that caused this error, if available.
    */
-  public reason?: any;
+  public reason?: unknown;
 
   /**
    * Creates an instance of PauseSdkError.
@@ -41,7 +42,7 @@ export class PauseSdkError extends Error {
    * @param message - A descriptive error message.
    * @param reason - (Optional) The original error that triggered this error.
    */
-  constructor(code: string, message: string, reason?: any) {
+  constructor(code: string, message: string, reason?: unknown) {
     super(message);
     this.code = code;
     this.reason = reason;
@@ -53,7 +54,7 @@ export class PauseSdkError extends Error {
  * Interface representing the NEAR controller contract.
  */
 interface ControllerContract extends Contract {
-  delegate_pause: (args: any) => Promise<void>;
+  delegate_pause: (args: unknown) => Promise<void>;
 }
 
 /**
@@ -93,34 +94,32 @@ export interface PauseOpts {
  */
 export async function pause(opts: PauseOpts): Promise<void> {
   const { networkId, chainId, accountId, sender } = opts;
-  const network = typeof chainId === "string" ? parseInt(chainId) : chainId;
+  const network = typeof chainId === 'string' ? parseInt(chainId, 10) : chainId;
   const isNearChain = isSupportedNearChainId(chainId);
   const isEvmChain = isSupportedEVMChainId(chainId);
 
   // Validate required parameters.
   if (!networkId || !chainId || !accountId || !(isNearChain || isEvmChain)) {
     throw new PauseSdkError(
-      "INVALID_PARAMETERS",
-      "Missing or invalid parameters provided",
+      'INVALID_PARAMETERS',
+      'Missing or invalid parameters provided',
     );
   }
 
   if (isNearChain) {
     // Derivation path with trailing `'` is required.
     const derivationPath = `${NEAR_DERIVATION_PATH}/${NEAR_INDEX_BY_CHAIN_ID[chainId]}'`;
-    console.info(`Deriving public key from ${derivationPath}`);
 
     const { publicKey, secretKey } = parseSeedPhrase(
       NEAR_MNEMONIC,
       derivationPath,
     );
-    const keypair = KeyPair.fromString(secretKey);
-    console.info(`Public Key: ${publicKey}`);
 
-    const [, pk] = publicKey.split(":");
-    const implicitAccountId = Buffer.from(base58.decode(pk)).toString("hex");
-    const signer = sender || implicitAccountId;
-    console.info(`Signer: ${signer}`);
+    const keypair = KeyPair.fromString(secretKey);
+
+    const [, pk] = publicKey.split(':');
+    const implicitAccountId = Buffer.from(base58.decode(pk)).toString('hex');
+    const signer = sender ?? implicitAccountId;
 
     await keyStore.setKey(chainId, signer, keypair);
 
@@ -130,7 +129,7 @@ export async function pause(opts: PauseOpts): Promise<void> {
 
     const account = await nearConnection.account(signer);
     const contract = new nearAPI.Contract(account, NEAR_CONTROLLER_CONTRACT, {
-      changeMethods: ["delegate_pause"],
+      changeMethods: ['delegate_pause'],
       viewMethods: [],
       useLocalViewExecution: true,
     }) as ControllerContract;
@@ -139,13 +138,13 @@ export async function pause(opts: PauseOpts): Promise<void> {
       await contract.delegate_pause({
         args: {
           receiver_id: accountId,
-          pause_method_name: opts.methodName || NEAR_DEFAULT_PAUSE_METHOD,
+          pause_method_name: opts.methodName ?? NEAR_DEFAULT_PAUSE_METHOD,
         },
       });
     } catch (e) {
       throw new PauseSdkError(
-        "NEAR_PAUSE_ERROR",
-        "Error occurred while executing delegate_pause on NEAR chain",
+        'NEAR_PAUSE_ERROR',
+        'Error occurred while executing delegate_pause on NEAR chain',
         e,
       );
     }
@@ -156,21 +155,20 @@ export async function pause(opts: PauseOpts): Promise<void> {
     const provider = new ethers.JsonRpcProvider(rpcUrl, network);
 
     const derivationPath = `${ETHEREUM_DERIVATION_PATH}/${ETH_INDEX_BY_CHAIN_ID[chainId]}`;
-    console.info(`Deriving public key from ${derivationPath}`);
 
     const wallet = ethers.HDNodeWallet.fromMnemonic(
       ethers.Mnemonic.fromPhrase(ETHEREUM_MNEMONIC),
       derivationPath,
     ).connect(provider);
-    console.info(`Signer: ${wallet.publicKey}`);
 
     const contract = new ethers.Contract(accountId, pausableAbi, wallet);
+
     try {
       await contract.pause();
     } catch (e) {
       throw new PauseSdkError(
-        "EVM_PAUSE_ERROR",
-        "Error occurred while executing pause on EVM chain",
+        'EVM_PAUSE_ERROR',
+        'Error occurred while executing pause on EVM chain',
         e,
       );
     }
@@ -206,31 +204,31 @@ export interface UnpauseOpts {
 export async function unpause(opts: UnpauseOpts): Promise<void> {
   const { networkId, chainId, accountId } = opts;
   const isEvmChain = isSupportedEVMChainId(chainId);
+
   if (!networkId || !chainId || !accountId || !isEvmChain) {
     throw new PauseSdkError(
-      "INVALID_PARAMETERS",
-      "Missing or invalid parameters provided",
+      'INVALID_PARAMETERS',
+      'Missing or invalid parameters provided',
     );
   }
 
   const rpcUrl = RPC_URL_BY_CHAIN_ID[chainId];
   const provider = new ethers.JsonRpcProvider(rpcUrl, chainId);
   const derivationPath = `${ETHEREUM_DERIVATION_PATH}/${ETH_INDEX_BY_CHAIN_ID[chainId]}`;
-  console.info(`Deriving public key from ${derivationPath}`);
 
   const wallet = ethers.HDNodeWallet.fromMnemonic(
     ethers.Mnemonic.fromPhrase(ETHEREUM_MNEMONIC),
     derivationPath,
   ).connect(provider);
-  console.info(`Signer: ${wallet.publicKey}`);
 
   const contract = new ethers.Contract(accountId, pausableAbi, wallet);
+
   try {
     await contract.unPause();
   } catch (e) {
     throw new PauseSdkError(
-      "EVM_UNPAUSE_ERROR",
-      "Error occurred while executing unpause on EVM chain",
+      'EVM_UNPAUSE_ERROR',
+      'Error occurred while executing unpause on EVM chain',
       e,
     );
   }
