@@ -1,12 +1,21 @@
 {
   "name": "@aurora-is-near/pauser-sdk",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "SDK for pausing/unpausing contracts on NEAR and Ethereum networks",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "test": "jest",
+    "pretest": "pnpm run build"
   },
-  "keywords": [],
+  "keywords": [
+    "pause",
+    "sdk",
+    "near",
+    "ethereum",
+    "smart-contract"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -16,6 +25,10 @@
     "near-seed-phrase": "^0.2.0"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.26.9",
+    "@babel/preset-typescript": "^7.26.0",
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
     "typescript": "^5.8.2"
   }
 }
