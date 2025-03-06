@@ -12,4 +12,3 @@ const compat = new FlatCompat({
 });
 
 export default [...compat.extends('@aurora-is-near/eslint-config')];
-
