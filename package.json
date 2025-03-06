@@ -18,7 +18,7 @@
     "ethereum",
     "smart-contract"
   ],
-  "author": "",
+  "author": "aurorasec <security@aurora.dev>",
   "license": "ISC",
   "dependencies": {
     "bs58": "^5.0.0",
