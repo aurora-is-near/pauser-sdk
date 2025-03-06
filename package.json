@@ -11,6 +11,11 @@
   "engines": {
     "node": ">=20.18.1"
   },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "sideEffects": false,
   "keywords": [
     "pause",
     "sdk",
