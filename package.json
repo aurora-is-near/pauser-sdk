@@ -1,6 +1,6 @@
 {
   "name": "@auroraisnear/pauser-sdk",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "SDK for pausing/unpausing contracts on NEAR and EVM networks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
