@@ -1,7 +1,7 @@
 {
   "name": "@auroraisnear/pauser-sdk",
   "version": "1.2.0",
-  "description": "SDK for pausing/unpausing contracts on NEAR and Ethereum networks",
+  "description": "SDK for pausing/unpausing contracts on NEAR and EVM networks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
