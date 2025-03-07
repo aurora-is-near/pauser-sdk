@@ -7,7 +7,8 @@
   "scripts": {
     "lint": "eslint src/** test/** --ext .ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
   },
   "engines": {
     "node": ">=20.18.1"
