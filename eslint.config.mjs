@@ -11,4 +11,9 @@ const compat = new FlatCompat({
   allConfig: js.configs.all,
 });
 
-export default [...compat.extends('@aurora-is-near/eslint-config')];
+/**
+ * @type {import('eslint').Linter.Config[]}
+ */
+const config = [...compat.extends('@aurora-is-near/eslint-config')];
+
+export default config;
