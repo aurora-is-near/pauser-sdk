@@ -26,7 +26,7 @@
     "smart-contract"
   ],
   "author": "aurorasec <security@aurora.dev>",
-  "license": "ISC",
+  "license": "CC0-1.0",
   "dependencies": {
     "bs58": "^5.0.0",
     "ethers": "^6.11.1",
