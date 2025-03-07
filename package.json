@@ -1,5 +1,5 @@
 {
-  "name": "@aurora-is-near/pauser-sdk",
+  "name": "@auroraisnear/pauser-sdk",
   "version": "1.0.0",
   "description": "SDK for pausing/unpausing contracts on NEAR and Ethereum networks",
   "main": "dist/index.js",
