@@ -49,6 +49,6 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "tag": "latest",
-    "provenance": true
+    "provenance": false
   }
 }
