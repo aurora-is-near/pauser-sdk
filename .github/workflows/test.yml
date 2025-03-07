@@ -22,5 +22,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ github.token }}
       - name: Lint
         run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
       - name: Test
         run: pnpm test
