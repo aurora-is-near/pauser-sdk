@@ -43,6 +43,7 @@
     "@types/jest": "^29.5.14",
     "eslint": "^9.21.0",
     "jest": "^29.7.0",
+    "near-workspaces": "^5.0.0",
     "prettier": "^3.2.5",
     "typescript": "^5.5.4"
   },
@@ -51,5 +52,8 @@
     "tag": "latest",
     "access": "public",
     "provenance": false
+  },
+  "jest": {
+    "testTimeout": 20000
   }
 }
