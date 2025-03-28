@@ -34,10 +34,12 @@ export const NEAR_MNEMONIC =
 
 export const MAINNET = 'mainnet';
 export const TESTNET = 'testnet';
-export const NEAR_CHAINS = [MAINNET, TESTNET];
+export const LOCALNET = 'local';
+export const NEAR_CHAINS = [MAINNET, TESTNET, LOCALNET];
 export const NEAR_INDEX_BY_CHAIN_ID = {
   [MAINNET]: '0',
   [TESTNET]: '1',
+  [LOCALNET]: '2',
 };
 
 type SupportedNearChainId = keyof typeof NEAR_INDEX_BY_CHAIN_ID;
@@ -45,7 +47,7 @@ type SupportedNearChainId = keyof typeof NEAR_INDEX_BY_CHAIN_ID;
 export function isSupportedNearChainId(
   chainId: string | number,
 ): chainId is SupportedNearChainId {
-  return chainId === MAINNET || chainId === TESTNET;
+  return chainId === MAINNET || chainId === TESTNET || chainId === LOCALNET;
 }
 
 export type SupportedChainId = SupportedEVMChainId | SupportedNearChainId;
@@ -67,9 +69,11 @@ export const NEAR_TESTNET_CONFIG = {
   helperUrl: 'https://helper.testnet.near.org',
   explorerUrl: 'https://testnet.nearblocks.io',
 };
+export const NEAR_LOCALNET_CONFIG = {
+  networkId: LOCALNET,
+  keyStore,
+};
 
-// TODO: should this be user defined too or will this be a singleton?
-export const NEAR_CONTROLLER_CONTRACT = 'controller-demo.testnet';
-
-// TODO: confirm this is the correct default, e.g. engine uses "pause_contract"
 export const NEAR_DEFAULT_PAUSE_METHOD = 'pa_pause_feature';
+
+export const NEAR_DEFAULT_PAUSE_ARGUMENTS = { key: 'ALL' };

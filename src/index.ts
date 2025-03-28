@@ -1,6 +1,6 @@
 import base58 from 'bs58';
 import { ethers } from 'ethers';
-import nearAPI, { Contract, KeyPair } from 'near-api-js';
+import * as nearAPI from 'near-api-js';
 import { parseSeedPhrase } from 'near-seed-phrase';
 import {
   ETH_INDEX_BY_CHAIN_ID,
@@ -10,14 +10,16 @@ import {
   isSupportedNearChainId,
   keyStore,
   MAINNET,
-  NEAR_CONTROLLER_CONTRACT,
+  NEAR_DEFAULT_PAUSE_ARGUMENTS,
   NEAR_DEFAULT_PAUSE_METHOD,
   NEAR_DERIVATION_PATH,
   NEAR_INDEX_BY_CHAIN_ID,
+  NEAR_LOCALNET_CONFIG,
   NEAR_MAINNET_CONFIG,
   NEAR_MNEMONIC,
   NEAR_TESTNET_CONFIG,
   RPC_URL_BY_CHAIN_ID,
+  TESTNET,
 } from './config';
 import pausableAbi from './Pausable.abi';
 
@@ -50,38 +52,45 @@ export class PauseSdkError extends Error {
   }
 }
 
-/**
- * Interface representing the NEAR controller contract.
- */
-interface ControllerContract extends Contract {
-  delegate_pause: (args: unknown) => Promise<void>;
-}
+type UnifiedPauseOpts = EthereumPauseOpts | NearPauseOpts;
 
-/**
- * Options for pausing a contract.
- */
-export interface PauseOpts {
+type EthereumPauseOpts = {
+  networkId: 'ethereum';
+  chainId: number;
   /**
-   * Network ID which identifies the blockchain network (e.g. NEAR or Ethereum).
+   * The contract address to pause.
    */
-  networkId: string;
-  /**
-   * The chain ID. For Ethereum it should be a number; for NEAR a string is acceptable.
-   */
-  chainId: number | string;
+  accountId: string;
+};
+
+type NearPauseOpts = {
+  networkId: 'near';
+  chainId: string;
   /**
    * The account ID of the contract to pause.
    */
   accountId: string;
   /**
-   * Only applies to NEAR chains, controls the method that will be called by delegate.
+   * dictates the controller contract that will be called by delegate.
+   */
+  target: string;
+  /**
+   * controls the method that will be called by delegate.
    */
   methodName?: string;
   /**
-   * Only applies to NEAR chains, controls the accountId that performs the call.
+   * controls the arguments used in the method call by delegate.
+   */
+  methodArgs?: unknown;
+  /**
+   * controls the accountId that performs the call.
    */
   sender?: string;
-}
+  /**
+   * for testing purposes only, calls a local node if set
+   */
+  nodeUrl?: string;
+};
 
 /**
  * Pauses a contract on a supported blockchain network.
@@ -92,11 +101,11 @@ export interface PauseOpts {
  * @param opts - The options required to perform the pause operation.
  * @throws {PauseSdkError} Throws structured errors for invalid parameters or if pausing fails.
  */
-export async function pause(opts: PauseOpts): Promise<void> {
-  const { networkId, chainId, accountId, sender } = opts;
+export async function pause(opts: UnifiedPauseOpts): Promise<void> {
+  const { networkId, chainId, accountId } = opts;
   const network = typeof chainId === 'string' ? parseInt(chainId, 10) : chainId;
-  const isNearChain = isSupportedNearChainId(chainId);
-  const isEvmChain = isSupportedEVMChainId(chainId);
+  const isNearChain = networkId === 'near' && isSupportedNearChainId(chainId);
+  const isEvmChain = networkId === 'ethereum' && isSupportedEVMChainId(chainId);
 
   // Validate required parameters.
   if (!networkId || !chainId || !accountId || !(isNearChain || isEvmChain)) {
@@ -115,31 +124,41 @@ export async function pause(opts: PauseOpts): Promise<void> {
       derivationPath,
     );
 
-    const keypair = KeyPair.fromString(secretKey);
+    const keypair = nearAPI.KeyPair.fromString(secretKey);
 
     const [, pk] = publicKey.split(':');
     const implicitAccountId = Buffer.from(base58.decode(pk)).toString('hex');
-    const signer = sender ?? implicitAccountId;
+    const signer = opts.sender ?? implicitAccountId;
 
     await keyStore.setKey(chainId, signer, keypair);
 
-    const nearConnection = await nearAPI.connect(
-      chainId === MAINNET ? NEAR_MAINNET_CONFIG : NEAR_TESTNET_CONFIG,
-    );
+    let networkConfig = {
+      ...NEAR_LOCALNET_CONFIG,
+      nodeUrl: opts.nodeUrl ?? '',
+    };
+
+    if (chainId === MAINNET) {
+      networkConfig = NEAR_MAINNET_CONFIG;
+    }
+
+    if (chainId === TESTNET) {
+      networkConfig = NEAR_TESTNET_CONFIG;
+    }
+
+    const nearConnection = await nearAPI.connect(networkConfig);
 
     const account = await nearConnection.account(signer);
-    const contract = new nearAPI.Contract(account, NEAR_CONTROLLER_CONTRACT, {
-      changeMethods: ['delegate_pause'],
-      viewMethods: [],
-      useLocalViewExecution: true,
-    }) as ControllerContract;
 
     try {
-      await contract.delegate_pause({
+      await account.functionCall({
+        contractId: opts.target,
+        methodName: 'delegate_pause',
         args: {
           receiver_id: accountId,
           pause_method_name: opts.methodName ?? NEAR_DEFAULT_PAUSE_METHOD,
+          pause_arguments: opts.methodArgs ?? NEAR_DEFAULT_PAUSE_ARGUMENTS,
         },
+        attachedDeposit: 1,
       });
     } catch (e) {
       throw new PauseSdkError(
