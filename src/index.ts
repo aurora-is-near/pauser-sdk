@@ -9,7 +9,6 @@ import {
   keyStore,
   MAINNET,
   NEAR_DEFAULT_PAUSE_ARGUMENTS,
-  NEAR_DEFAULT_PAUSE_METHOD,
   NEAR_DERIVATION_PATH,
   NEAR_INDEX_BY_CHAIN_ID,
   NEAR_LOCALNET_CONFIG,
@@ -263,8 +262,8 @@ export async function pause(opts: UnifiedPauseOpts): Promise<void> {
         methodName: 'delegate_pause',
         args: {
           receiver_id: accountId,
-          pause_method_name: opts.methodName ?? NEAR_DEFAULT_PAUSE_METHOD,
-          pause_arguments: opts.methodArgs ?? NEAR_DEFAULT_PAUSE_ARGUMENTS,
+          pause_method_name: opts.methodName,
+          pause_arguments: opts.methodArgs,
         },
         attachedDeposit: 1,
       });
