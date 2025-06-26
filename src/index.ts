@@ -92,6 +92,7 @@ type NearPauseOpts = {
    * for testing purposes only, calls a local node if set
    */
   nodeUrl?: string;
+  derivationPath?: string;
 };
 
 /**
@@ -119,7 +120,9 @@ export async function pause(opts: UnifiedPauseOpts): Promise<void> {
 
   if (isNearChain) {
     // Derivation path with trailing `'` is required.
-    const derivationPath = `${NEAR_DERIVATION_PATH}/${NEAR_INDEX_BY_CHAIN_ID[chainId]}'`;
+    const derivationPath =
+      opts.derivationPath ??
+      `${NEAR_DERIVATION_PATH}/${NEAR_INDEX_BY_CHAIN_ID[chainId]}'`;
 
     const { publicKey, secretKey } = parseSeedPhrase(
       NEAR_MNEMONIC,
