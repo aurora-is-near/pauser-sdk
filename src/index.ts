@@ -6,8 +6,6 @@ import {
   ETH_INDEX_BY_CHAIN_ID,
   ETHEREUM_DERIVATION_PATH,
   ETHEREUM_MNEMONIC,
-  isSupportedEVMChainId,
-  isSupportedNearChainId,
   keyStore,
   MAINNET,
   NEAR_DEFAULT_PAUSE_ARGUMENTS,
@@ -21,6 +19,10 @@ import {
   RPC_URL_BY_CHAIN_ID,
   TESTNET,
 } from './config';
+import {
+  isSupportedEVMChainId,
+  isSupportedNearChainId,
+} from './types';
 import pausableAbi from './Pausable.abi';
 
 /**

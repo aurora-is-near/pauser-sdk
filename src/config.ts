@@ -12,14 +12,6 @@ export const ETH_INDEX_BY_CHAIN_ID = {
   1313161554: '0/1',
 };
 
-type SupportedEVMChainId = keyof typeof ETH_INDEX_BY_CHAIN_ID;
-
-export function isSupportedEVMChainId(
-  chainId: number | string,
-): chainId is SupportedEVMChainId {
-  return chainId === ETHEREUM || chainId === AURORA;
-}
-
 export const ETHEREUM_NETWORK = 'ethereum';
 export const ETHEREUM_DERIVATION_PATH = "m/44'/60'/0'";
 export const ETHEREUM_MNEMONIC =
@@ -41,16 +33,6 @@ export const NEAR_INDEX_BY_CHAIN_ID = {
   [TESTNET]: '1',
   [LOCALNET]: '2',
 };
-
-type SupportedNearChainId = keyof typeof NEAR_INDEX_BY_CHAIN_ID;
-
-export function isSupportedNearChainId(
-  chainId: string | number,
-): chainId is SupportedNearChainId {
-  return chainId === MAINNET || chainId === TESTNET || chainId === LOCALNET;
-}
-
-export type SupportedChainId = SupportedEVMChainId | SupportedNearChainId;
 
 export const keyStore = new keyStores.InMemoryKeyStore();
 export const NEAR_MAINNET_CONFIG = {
