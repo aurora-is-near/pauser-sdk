@@ -20,6 +20,9 @@ import {
   TESTNET,
 } from './config';
 import {
+  Chainish,
+  isEvmNetwork,
+  isNearNetwork,
   isSupportedEVMChainId,
   isSupportedNearChainId,
 } from './types';
@@ -94,6 +97,106 @@ type NearPauseOpts = {
   nodeUrl?: string;
   derivationPath?: string;
 };
+
+export interface IsPausableOpts {
+  /**
+   * The account ID or contract address to check.
+   */
+  accountId: string;
+  /**
+   * The ID of the network (e.g., 'near', 'ethereum').
+   */
+  networkId: string;
+  /**
+   * The chain ID (e.g., 'mainnet', 'testnet', or a number for Ethereum).
+   */
+  chainId: Chainish;
+  /**
+   * for testing purposes only, calls a local node if set
+   */
+  nodeUrl?: string;
+}
+
+/**
+ * Checks if a contract is pausable on a given blockchain network.
+ * This function currently performs basic validation of network and chain parameters.
+ * In the future, it will include on-chain state validation to confirm pauseability.
+ *
+ * @param params - The parameters object.
+ * @returns A promise that resolves to `true` if the contract is pausable, `false` otherwise.
+ */
+export async function isPausable({
+  accountId,
+  networkId,
+  chainId,
+  nodeUrl,
+}: IsPausableOpts) {
+  const isNearChain =
+    isNearNetwork(networkId) && isSupportedNearChainId(chainId);
+
+  const isEvmChain = isEvmNetwork(networkId) && isSupportedEVMChainId(chainId);
+
+  if (!networkId || !accountId || !chainId || (!isNearChain && !isEvmChain)) {
+    return false;
+  }
+
+  if (isNearChain) {
+    const derivationPath = `${NEAR_DERIVATION_PATH}/${NEAR_INDEX_BY_CHAIN_ID[chainId]}'`;
+
+    const { publicKey } = parseSeedPhrase(NEAR_MNEMONIC, derivationPath);
+
+    const [, pk] = publicKey.split(':');
+    const implicitAccountId = Buffer.from(base58.decode(pk)).toString('hex');
+    let networkConfig = {
+      ...NEAR_LOCALNET_CONFIG,
+      nodeUrl: nodeUrl ?? '',
+    };
+
+    if (chainId === MAINNET) {
+      networkConfig = NEAR_MAINNET_CONFIG;
+    }
+
+    if (chainId === TESTNET) {
+      networkConfig = NEAR_TESTNET_CONFIG;
+    }
+
+    const nearConnection = await nearAPI.connect(networkConfig);
+    const account = await nearConnection.account(implicitAccountId);
+
+    try {
+      const pluginResult = await account.viewFunction({
+        contractId: accountId,
+        methodName: 'pa_is_paused',
+        args: NEAR_DEFAULT_PAUSE_ARGUMENTS,
+      });
+
+      if (!pluginResult) {
+        return true;
+      }
+    } catch (error) {
+      // Fail silently as the contract may be an engine contract
+    }
+
+    try {
+      const engineResult = await account.viewFunction({
+        contractId: accountId,
+        methodName: 'get_paused_flags',
+      });
+
+      if (engineResult === '') {
+        return true;
+      }
+    } catch (e) {
+      // Fail silently as it may be an unpauseable contract
+    }
+
+    return false;
+  }
+
+  // TODO: read on-chain state for EVM to validate pauseability
+
+  return true;
+}
 
 /**
  * Pauses a contract on a supported blockchain network.
