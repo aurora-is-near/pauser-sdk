@@ -70,6 +70,8 @@ describe('e2e', () => {
         accountId: target.accountId,
         target: controller.accountId,
         sender: sender.accountId,
+        methodName: 'pa_pause_feature',
+        methodArgs: { key: 'ALL' },
         nodeUrl: worker.provider.connection.url,
       }),
     ).resolves.toBeUndefined();
