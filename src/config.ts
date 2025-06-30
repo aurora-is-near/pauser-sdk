@@ -37,5 +37,3 @@ export const NEAR_INDEX_BY_CHAIN_ID = {
 export const NEAR_DEFAULT_PAUSE_METHOD = 'pa_pause_feature';
 
 export const NEAR_DEFAULT_PAUSE_ARGUMENTS = { key: 'ALL' };
-
-export const NEAR_TO_YOCTONEAR_RATE = 0.000000000000000000000001;

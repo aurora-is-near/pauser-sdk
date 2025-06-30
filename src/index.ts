@@ -3,7 +3,6 @@ import { ethers } from 'ethers';
 import { Account } from '@near-js/accounts';
 import { JsonRpcProvider } from '@near-js/providers';
 import { KeyPairSigner } from '@near-js/signers';
-import { NEAR } from '@near-js/tokens';
 import { parseSeedPhrase } from 'near-seed-phrase';
 import {
   ETH_INDEX_BY_CHAIN_ID,
@@ -15,7 +14,6 @@ import {
   NEAR_DERIVATION_PATH,
   NEAR_INDEX_BY_CHAIN_ID,
   NEAR_MNEMONIC,
-  NEAR_TO_YOCTONEAR_RATE,
   RPC_URL_BY_CHAIN_ID,
   TESTNET_RPC,
 } from './config';
@@ -241,7 +239,7 @@ export async function pause(opts: UnifiedPauseOpts): Promise<void> {
           pause_method_name: opts.methodName,
           pause_arguments: opts.methodArgs,
         },
-        deposit: NEAR.toUnits(NEAR_TO_YOCTONEAR_RATE),
+        deposit: 1,
       });
     } catch (e) {
       if (e instanceof Error) {
