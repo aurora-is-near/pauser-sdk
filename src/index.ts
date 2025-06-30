@@ -244,6 +244,11 @@ export async function pause(opts: UnifiedPauseOpts): Promise<void> {
         deposit: NEAR.toUnits(NEAR_TO_YOCTONEAR_RATE),
       });
     } catch (e) {
+      if (e instanceof Error) {
+        // eslint-disable-next-line no-console
+        console.warn(e.stack);
+      }
+
       throw new PauseSdkError(
         'NEAR_PAUSE_ERROR',
         'Error occurred while executing delegate_pause on NEAR chain',
@@ -268,6 +273,11 @@ export async function pause(opts: UnifiedPauseOpts): Promise<void> {
     try {
       await contract.pause();
     } catch (e) {
+      if (e instanceof Error) {
+        // eslint-disable-next-line no-console
+        console.warn(e.stack);
+      }
+
       throw new PauseSdkError(
         'EVM_PAUSE_ERROR',
         'Error occurred while executing pause on EVM chain',
