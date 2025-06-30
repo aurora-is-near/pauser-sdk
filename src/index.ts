@@ -1,22 +1,23 @@
 import base58 from 'bs58';
 import { ethers } from 'ethers';
-import * as nearAPI from 'near-api-js';
+import { Account } from '@near-js/accounts';
+import { JsonRpcProvider } from '@near-js/providers';
+import { KeyPairSigner } from '@near-js/signers';
+import { NEAR } from '@near-js/tokens';
 import { parseSeedPhrase } from 'near-seed-phrase';
 import {
   ETH_INDEX_BY_CHAIN_ID,
   ETHEREUM_DERIVATION_PATH,
   ETHEREUM_MNEMONIC,
-  keyStore,
   MAINNET,
+  MAINNET_RPC,
   NEAR_DEFAULT_PAUSE_ARGUMENTS,
   NEAR_DERIVATION_PATH,
   NEAR_INDEX_BY_CHAIN_ID,
-  NEAR_LOCALNET_CONFIG,
-  NEAR_MAINNET_CONFIG,
   NEAR_MNEMONIC,
-  NEAR_TESTNET_CONFIG,
+  NEAR_TO_YOCTONEAR_RATE,
   RPC_URL_BY_CHAIN_ID,
-  TESTNET,
+  TESTNET_RPC,
 } from './config';
 import {
   Chainish,
@@ -140,34 +141,18 @@ export async function isPausable({
   }
 
   if (isNearChain) {
-    const derivationPath = `${NEAR_DERIVATION_PATH}/${NEAR_INDEX_BY_CHAIN_ID[chainId]}'`;
+    const rpcUrl = chainId === MAINNET ? MAINNET_RPC : TESTNET_RPC;
 
-    const { publicKey } = parseSeedPhrase(NEAR_MNEMONIC, derivationPath);
-
-    const [, pk] = publicKey.split(':');
-    const implicitAccountId = Buffer.from(base58.decode(pk)).toString('hex');
-    let networkConfig = {
-      ...NEAR_LOCALNET_CONFIG,
-      nodeUrl: nodeUrl ?? '',
-    };
-
-    if (chainId === MAINNET) {
-      networkConfig = NEAR_MAINNET_CONFIG;
-    }
-
-    if (chainId === TESTNET) {
-      networkConfig = NEAR_TESTNET_CONFIG;
-    }
-
-    const nearConnection = await nearAPI.connect(networkConfig);
-    const account = await nearConnection.account(implicitAccountId);
+    const provider = new JsonRpcProvider({
+      url: nodeUrl ?? rpcUrl,
+    });
 
     try {
-      const pluginResult = await account.viewFunction({
-        contractId: accountId,
-        methodName: 'pa_is_paused',
-        args: NEAR_DEFAULT_PAUSE_ARGUMENTS,
-      });
+      const pluginResult = await provider.callFunction(
+        accountId,
+        'pa_is_paused',
+        NEAR_DEFAULT_PAUSE_ARGUMENTS,
+      );
 
       if (!pluginResult) {
         return true;
@@ -177,10 +162,11 @@ export async function isPausable({
     }
 
     try {
-      const engineResult = await account.viewFunction({
-        contractId: accountId,
-        methodName: 'get_paused_flags',
-      });
+      const engineResult = await provider.callFunction(
+        accountId,
+        'get_paused_flags',
+        {},
+      );
 
       if (engineResult === '') {
         return true;
@@ -231,33 +217,23 @@ export async function pause(opts: UnifiedPauseOpts): Promise<void> {
       derivationPath,
     );
 
-    const keypair = nearAPI.KeyPair.fromString(secretKey);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const signer = KeyPairSigner.fromSecretKey(secretKey as any);
 
     const [, pk] = publicKey.split(':');
     const implicitAccountId = Buffer.from(base58.decode(pk)).toString('hex');
-    const signer = opts.sender ?? implicitAccountId;
+    const senderAccountId = opts.sender ?? implicitAccountId;
 
-    await keyStore.setKey(chainId, signer, keypair);
+    const rpcUrl = chainId === MAINNET ? MAINNET_RPC : TESTNET_RPC;
 
-    let networkConfig = {
-      ...NEAR_LOCALNET_CONFIG,
-      nodeUrl: opts.nodeUrl ?? '',
-    };
+    const provider = new JsonRpcProvider({
+      url: opts.nodeUrl ?? rpcUrl,
+    });
 
-    if (chainId === MAINNET) {
-      networkConfig = NEAR_MAINNET_CONFIG;
-    }
-
-    if (chainId === TESTNET) {
-      networkConfig = NEAR_TESTNET_CONFIG;
-    }
-
-    const nearConnection = await nearAPI.connect(networkConfig);
-
-    const account = await nearConnection.account(signer);
+    const account = new Account(senderAccountId, provider, signer);
 
     try {
-      await account.functionCall({
+      await account.callFunction({
         contractId: opts.target,
         methodName: 'delegate_pause',
         args: {
@@ -265,7 +241,7 @@ export async function pause(opts: UnifiedPauseOpts): Promise<void> {
           pause_method_name: opts.methodName,
           pause_arguments: opts.methodArgs,
         },
-        attachedDeposit: 1,
+        deposit: NEAR.toUnits(NEAR_TO_YOCTONEAR_RATE),
       });
     } catch (e) {
       throw new PauseSdkError(

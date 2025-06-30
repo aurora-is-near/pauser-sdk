@@ -1,5 +1,3 @@
-import { keyStores } from 'near-api-js';
-
 export const ETHEREUM = 1;
 export const AURORA = 1313161554;
 
@@ -27,6 +25,8 @@ export const NEAR_MNEMONIC =
 export const MAINNET = 'mainnet';
 export const TESTNET = 'testnet';
 export const LOCALNET = 'local';
+export const MAINNET_RPC = 'https://free.rpc.fastnear.com';
+export const TESTNET_RPC = 'https://test.rpc.fastnear.com';
 export const NEAR_CHAINS = [MAINNET, TESTNET, LOCALNET];
 export const NEAR_INDEX_BY_CHAIN_ID = {
   [MAINNET]: '0',
@@ -34,28 +34,8 @@ export const NEAR_INDEX_BY_CHAIN_ID = {
   [LOCALNET]: '2',
 };
 
-export const keyStore = new keyStores.InMemoryKeyStore();
-export const NEAR_MAINNET_CONFIG = {
-  networkId: MAINNET,
-  keyStore,
-  nodeUrl: 'https://rpc.mainnet.near.org',
-  walletUrl: 'https://wallet.mainnet.near.org',
-  helperUrl: 'https://helper.mainnet.near.org',
-  explorerUrl: 'https://nearblocks.io',
-};
-export const NEAR_TESTNET_CONFIG = {
-  networkId: TESTNET,
-  keyStore,
-  nodeUrl: 'https://rpc.testnet.near.org',
-  walletUrl: 'https://testnet.mynearwallet.com/',
-  helperUrl: 'https://helper.testnet.near.org',
-  explorerUrl: 'https://testnet.nearblocks.io',
-};
-export const NEAR_LOCALNET_CONFIG = {
-  networkId: LOCALNET,
-  keyStore,
-};
-
 export const NEAR_DEFAULT_PAUSE_METHOD = 'pa_pause_feature';
 
 export const NEAR_DEFAULT_PAUSE_ARGUMENTS = { key: 'ALL' };
+
+export const NEAR_TO_YOCTONEAR_RATE = 0.000000000000000000000001;
