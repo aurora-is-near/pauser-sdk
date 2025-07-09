@@ -23,7 +23,6 @@ jobs:
       issues: write
       pull-requests: write
       packages: write
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,16 +36,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: package.json
-          registry-url: https://npm.pkg.github.com
-          always-auth: true
       - name: Install
         run: pnpm install --frozen-lockfile --ignore-scripts
-        env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
       - name: Build
         run: pnpm build
       - name: Release
         run: pnpx semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_SEMANTIC_RELEASE_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
